@@ -63,12 +63,12 @@ def get_accuracy_on_batch(y_pred, y_label):
     accuracy = tf.reduce_mean(tf.cast(Is_equal, tf.float32))
     return accuracy
 
-def getAttentionMap(model = None, img = None):
+def getAttentionMap(model = None, img = None, inverse = 1):
     #with tf.GradientTape() as tapeForClassify:
     #    outputsForClassify, layerOutForClassify = model(img)
     with tf.GradientTape() as tapeForSegmentaion:
         outputsForSegmentation, layerOutForSegmentation = model(img, training = True)
-    gradsForSegmentaion = tapeForSegmentaion.gradient(outputsForSegmentation, layerOutForSegmentation)
+    gradsForSegmentaion = inverse * tapeForSegmentaion.gradient(outputsForSegmentation, layerOutForSegmentation)
     alpha = tf.math.reduce_sum(gradsForSegmentaion, axis = [1, 2])
     AttentionMap = tf.math.multiply(tf.expand_dims(tf.expand_dims(alpha, 1), 1), layerOutForSegmentation)
     AttentionMap = tf.math.reduce_sum(AttentionMap, -1)

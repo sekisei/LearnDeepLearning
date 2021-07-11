@@ -46,8 +46,8 @@ class ASGAN(tf.keras.Model):
             LossCL = self.loss_fn(tf.reshape(cl_label, (len(cl_label), 1)), outputsForClassify)
 
         # Create datasets
-        target_attention = tf.math.multiply(AMResized_normalized, cl_input)
-        non_target_attention = tf.math.multiply(AMResized_normalized_inv, cl_input)
+        target_attention = tf.math.multiply(AMResized, cl_input)
+        non_target_attention = tf.math.multiply(AMResizedInverse, cl_input)
         constructed_img = tf.add(target_attention, non_target_attention)
         
         #----Train generator (standard)----
@@ -90,8 +90,8 @@ class ASGAN(tf.keras.Model):
             AMResized_normalized_inv = AMResized / tf.reduce_max(AMResizedInverse)
 
             # Create datasets
-            target_attention = tf.math.multiply(AMResized_normalized, cl_input)
-            non_target_attention = tf.math.multiply(AMResized_normalized_inv, cl_input)
+            target_attention = tf.math.multiply(AMResized, cl_input)
+            non_target_attention = tf.math.multiply(AMResizedInverse, cl_input)
             constructed_img = tf.add(target_attention, non_target_attention)
 
             D_out_on_train_G = self.Discriminator(constructed_img)
@@ -139,6 +139,7 @@ if __name__ == '__main__':
 
     # Create discriminator
     bModel = model.baseModel(height = 128, width = 128, dropout_rate = 0.5).genBaseModel()
+    '''
     Conv2D6 = tf.keras.layers.Conv2D(
             1,
             (3, 3),
@@ -147,7 +148,8 @@ if __name__ == '__main__':
             name = 'conv2DLayer6'
     )(bModel.get_layer('conv2DLayer5').output)
     output = tf.keras.layers.GlobalAveragePooling2D()(Conv2D6)
-    Generator = tf.keras.Model(inputs = bModel.input, outputs = [output, bModel.get_layer('conv2DLayer5').output])
+    '''
+    Generator = tf.keras.Model(inputs = bModel.input, outputs = [bModel.output, bModel.get_layer('conv2DLayer5').output])
 
     # Create generator
     bModel_ = model.baseModel(height = 128, width = 128, dropout_rate = 0.5).genBaseModel()
@@ -163,7 +165,7 @@ if __name__ == '__main__':
 
     asgan = ASGAN(Generator = Generator, Discriminator = Discriminator)
 
-    epochs = 1
+    epochs = 10
     batch_size = 32
 
     generator = tf.keras.preprocessing.image.ImageDataGenerator(rescale = 1 / 255.0)
@@ -210,10 +212,10 @@ if __name__ == '__main__':
         epochs = epochs,
         verbose = 1
     )
-    bModel.save('../save/asgan/')
+    Discriminator.save('../save/asgan/')
     #'''
 
-    '''
+    #'''
     bModel = tf.keras.models.load_model('../save/asgan/')
     input_img = next(train_gen)[0]
     with tf.GradientTape() as tapeForAll:
@@ -227,4 +229,4 @@ if __name__ == '__main__':
         ihm = tf.keras.preprocessing.image.array_to_img(hm)
         ihm.save('../res/HM' + str(i) + '.png')
         ii.save('../res/input' + str(i) + '.png')
-    '''
+    #'''

@@ -69,7 +69,7 @@ class baseModel():
         self.averagePooling2D2 = tf.keras.layers.AveragePooling2D(pool_size = (2, 2), padding='valid', name = 'avePool2D2')(self.l_dropout_2)
 
         self.conv2D5 = tf.keras.layers.Conv2D(
-            128,
+            64,
             (3, 3),
             activation = tf.nn.leaky_relu,
             padding = 'same',

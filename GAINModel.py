@@ -95,7 +95,7 @@ class GAINModel(tf.keras.Model):
 
 if __name__ == '__main__':
     batch_size = 64
-    epochs = 5
+    epochs = 10
 
     #tf.config.experimental.set_memory_growth(tf.config.list_physical_devices('GPU')[0], True)
     #tf.keras.mixed_precision.experimental.set_policy('mixed_float16')
@@ -107,12 +107,22 @@ if __name__ == '__main__':
     # 過学習を起こしているようなので、フィルター数を減らす
     # 特徴抽出を助けるためにlayer noramalizationを採用する
     #'''
-    base = model.baseModel(height = 128, width = 128, dropout_rate = 0.5)
+    base = model.baseModel(height = 128, width = 128, dropout_rate = 0.3)
     bModel = base.genBaseModel()
+    '''
+    Conv2D6 = tf.keras.layers.Conv2D(
+            1,
+            (3, 3),
+            activation = tf.nn.leaky_relu,
+            padding = 'same',
+            name = 'conv2DLayer6'
+    )(bModel.get_layer('conv2DLayer5').output)
+    output = tf.keras.layers.GlobalAveragePooling2D()(Conv2D6)
+    '''
     GModel = GAINModel(inputs = bModel.input, outputs = [bModel.output, bModel.get_layer('conv2DLayer5').output])
 
     train_gen = generator.flow_from_directory(
-        './dataset_for_flow/train',
+        '../datasets/dataset_for_flow/train',
         target_size = (128,128),
         batch_size = batch_size,
         class_mode = "binary",
@@ -120,7 +130,7 @@ if __name__ == '__main__':
     )
 
     valid_gen = generator.flow_from_directory(
-        './dataset_for_flow/valid',
+        '../datasets/dataset_for_flow/valid',
         target_size = (128,128),
         batch_size = batch_size,
         class_mode = "binary",
@@ -130,14 +140,14 @@ if __name__ == '__main__':
     ext_gen = {'train':None, 'valid':None}
     ext_train_gen = {
         'seg_input': generator.flow_from_directory(
-            './dataset_for_flow/ext_image',
+            '../datasets/dataset_for_flow/ext_image',
             target_size = (128,128),
             batch_size = batch_size,
             class_mode = None,
             seed = 1 #同じシードを指定
         ),
         'seg_ground_truth': generator.flow_from_directory(
-            './dataset_for_flow/ext_ground_truth',
+            '../datasets/dataset_for_flow/ext_ground_truth',
             target_size = (128,128),
             batch_size = batch_size,
             class_mode = None,
@@ -161,7 +171,7 @@ if __name__ == '__main__':
         verbose = 1
     )
 
-    GModel.save('./dataset_for_flow/model')
+    GModel.save('../save/dataset_for_flow/gain')
     '''
     seg_input = ext_gen['valid']['seg_input'].__next__()
     seg_ground_truth = ext_gen['valid']['seg_ground_truth'].__next__()
